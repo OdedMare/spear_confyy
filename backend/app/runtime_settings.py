@@ -80,6 +80,7 @@ class RuntimeSettingsStore:
             json.dumps(asdict(self._settings), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
+        self._path.chmod(0o600)
         return self._settings
 
     def _apply(self, patch: dict, strict: bool) -> None:

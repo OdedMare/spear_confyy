@@ -18,10 +18,13 @@ services:
     environment:
       SPEAR_DATABASE_URL: postgresql://spear:spear@database:5432/spear
       SPEAR_LLM_BASE_URL: ${SPEAR_LLM_BASE_URL:-http://host.docker.internal:8001/v1}
-      SPEAR_LLM_API_KEY: ${SPEAR_LLM_API_KEY:-null}
-      SPEAR_LLM_MODEL: ${SPEAR_LLM_MODEL:-gemma4-31b}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SPEAR_LLM_MODEL: ${SPEAR_LLM_MODEL:-gemma4:31b-cloud}
+      SPEAR_LLM_DIET_MODE: ${SPEAR_LLM_DIET_MODE:-true}
       SPEAR_GITLAB_URL: ${SPEAR_GITLAB_URL:-}
       SPEAR_GITLAB_TOKEN: ${SPEAR_GITLAB_TOKEN:-}
+      SPEAR_GITLAB_VERIFY_TLS: ${SPEAR_GITLAB_VERIFY_TLS:-true}
+      SPEAR_RUNTIME_SETTINGS_FILE: /app/data/runtime-settings.json
       SPEAR_TEAM_USERNAME: ${SPEAR_TEAM_USERNAME:-team}
       SPEAR_TEAM_PASSWORD: ${SPEAR_TEAM_PASSWORD:-spear-local}
       SPEAR_TEAM_DISPLAY_NAME: ${SPEAR_TEAM_DISPLAY_NAME:-צוות Spear}
@@ -31,6 +34,8 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - spear-runtime:/app/data
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 5s
@@ -52,4 +57,4 @@ services:
 
 volumes:
   spear-postgres:
-
+  spear-runtime:

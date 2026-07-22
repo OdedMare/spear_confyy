@@ -36,7 +36,6 @@ export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () =>
   useEffect(() => {
     if (!open) return;
     let active = true;
-    setLoading(true);
     fetch("/api/settings")
       .then(async (response) => {
         if (!response.ok) throw new Error("טעינת ההגדרות נכשלה");

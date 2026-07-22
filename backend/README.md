@@ -20,6 +20,8 @@ uvicorn app.main:app --reload
 
 The schema and safe seed content are created on application startup. Production secrets belong in environment variables, never in `.env.example` or source control.
 
+Like locatoAi, environment values are defaults. `GET/PUT /api/settings` updates a persisted runtime settings file, and the LLM client, PostgreSQL connections and GitLab scans read it on every operation. Blank secret fields retain the saved secret; API responses return only masked hints.
+
 ## Main endpoints
 
 - `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`
@@ -31,4 +33,3 @@ The schema and safe seed content are created on application startup. Production 
 - `WS /api/ws/projects/{project}`
 
 Repository scanning reads UTF-8 source/text only, is bounded by `SPEAR_GITLAB_MAX_FILES` and `SPEAR_GITLAB_MAX_FILE_BYTES`, and excludes secret-like names and generated/vendor directories.
-

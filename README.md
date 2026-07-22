@@ -31,8 +31,8 @@ docker compose up --build
 
 ```dotenv
 SPEAR_LLM_BASE_URL=http://llm.internal/v1
-SPEAR_LLM_API_KEY=null
-SPEAR_LLM_MODEL=gemma4-31b
+OPENAI_API_KEY=
+SPEAR_LLM_MODEL=gemma4:31b-cloud
 SPEAR_GITLAB_URL=https://gitlab.internal.example
 SPEAR_GITLAB_TOKEN=glpat-...
 SPEAR_TEAM_USERNAME=team
@@ -40,7 +40,7 @@ SPEAR_TEAM_PASSWORD=replace-me
 SPEAR_SESSION_SECRET=replace-with-a-long-random-value
 ```
 
-אסימוני LLM ו־GitLab נשארים ב־backend בלבד. שם המודל צריך להיות ה־slug המדויק שמוחזר מ־`/v1/models`.
+אפשר להגדיר את אותם ערכים גם מתוך כפתור ההגדרות בסביבת הצוות. בדומה ל־locatoAi, ערכי environment הם ברירות המחדל וה־runtime settings נשמרים בקובץ JSON פרטי ומופעלים מיד. אסימוני LLM ו־GitLab נשארים ב־backend בלבד. שם המודל צריך להיות ה־slug המדויק שמוחזר מ־`/v1/models`.
 
 ## פיתוח ללא Docker
 
