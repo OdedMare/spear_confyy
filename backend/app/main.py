@@ -258,6 +258,21 @@ def public_project(project: str) -> Dict[str, Any]:
     }
 
 
+@app.get("/api/public/{project}/documents/{document_id}")
+def public_document(project: str, document_id: int) -> Dict[str, Any]:
+    row = fetch_one(
+        """
+        SELECT id, project, title, content, kind, updated_at
+        FROM documents
+        WHERE id = %s AND project = %s AND visibility = 'public'
+        """,
+        (document_id, project),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="העמוד לא נמצא")
+    return row
+
+
 @app.post("/api/submissions")
 def create_submission(request: SubmissionRequest) -> Dict[str, Any]:
     prefix = {"question": "Q", "bug": "B", "idea": "I"}[request.type]
@@ -353,6 +368,57 @@ def save_knowledge(
         (request.project, request.title, request.content, request.visibility, request.kind),
     )
     return row or {}
+
+
+@app.get("/api/team/documents")
+def team_documents(
+    project: str = "Atlas",
+    _: Dict[str, str] = Depends(require_team),
+) -> List[Dict[str, Any]]:
+    return fetch_all(
+        """
+        SELECT id, project, title, visibility, kind, updated_at
+        FROM documents
+        WHERE project = %s
+        ORDER BY updated_at DESC, title
+        """,
+        (project,),
+    )
+
+
+@app.get("/api/team/documents/{document_id}")
+def team_document(document_id: int, _: Dict[str, str] = Depends(require_team)) -> Dict[str, Any]:
+    row = fetch_one(
+        """
+        SELECT id, project, title, content, visibility, kind, updated_at
+        FROM documents
+        WHERE id = %s
+        """,
+        (document_id,),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="העמוד לא נמצא")
+    return row
+
+
+@app.put("/api/team/documents/{document_id}")
+def update_document(
+    document_id: int,
+    request: KnowledgeRequest,
+    _: Dict[str, str] = Depends(require_team),
+) -> Dict[str, Any]:
+    row = fetch_one(
+        """
+        UPDATE documents
+        SET project = %s, title = %s, content = %s, visibility = %s, kind = %s, updated_at = NOW()
+        WHERE id = %s
+        RETURNING id, project, title, content, visibility, kind, updated_at
+        """,
+        (request.project, request.title, request.content, request.visibility, request.kind, document_id),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="העמוד לא נמצא")
+    return row
 
 
 @app.post("/api/repositories/analyze")
