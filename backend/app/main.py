@@ -57,6 +57,14 @@ class TeamMessageRequest(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
 
 
+class KnowledgeRequest(BaseModel):
+    project: str = Field(default="Atlas", max_length=120)
+    title: str = Field(min_length=3, max_length=200)
+    content: str = Field(min_length=3, max_length=100000)
+    kind: str = Field(pattern="^(guide|cheat-sheet|code)$")
+    visibility: str = Field(pattern="^(public|internal)$")
+
+
 class RepositoryAnalysisRequest(BaseModel):
     repository: str = Field(min_length=1, max_length=400)
     reference: str = Field(default="main", max_length=200)
@@ -266,6 +274,24 @@ def create_team_message(
         if agent_row:
             created.append(_message_row(agent_row))
     return {"messages": created}
+
+
+@app.post("/api/team/knowledge")
+def save_knowledge(
+    request: KnowledgeRequest,
+    _: Dict[str, str] = Depends(require_team),
+) -> Dict[str, Any]:
+    row = fetch_one(
+        """
+        INSERT INTO documents (project, title, content, visibility, kind, updated_at)
+        VALUES (%s, %s, %s, %s, %s, NOW())
+        ON CONFLICT (project, title, visibility)
+        DO UPDATE SET content = EXCLUDED.content, kind = EXCLUDED.kind, updated_at = NOW()
+        RETURNING id, project, title, visibility, kind, updated_at
+        """,
+        (request.project, request.title, request.content, request.visibility, request.kind),
+    )
+    return row or {}
 
 
 @app.post("/api/repositories/analyze")

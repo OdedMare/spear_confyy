@@ -27,10 +27,13 @@ import {
   TerminalSquare,
   Users,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { SpearMark } from "@/components/brand";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type TeamMessage = {
+  id?: number;
   author: string;
   initials: string;
   time: string;
@@ -39,81 +42,117 @@ type TeamMessage = {
   code?: string;
 };
 
-const initialMessages: TeamMessage[] = [
-  {
-    author: "מיה",
-    initials: "מי",
-    time: "09:41",
-    text: "מישהו זוכר מה צריך לעדכן לפני deploy של notifications-service?",
-  },
-  {
-    author: "Spearoni+",
-    initials: "+S",
-    time: "09:42",
-    agent: true,
-    text: "מצאתי את ה-runbook ואת השינוי האחרון ב-GitLab. לפני הפריסה צריך לעדכן את ConfigMap ולוודא שה-migration רצה פעם אחת בלבד.",
-    code: "oc apply -f deploy/configmap.yaml\noc rollout status deploy/notifications-service",
-  },
-  {
-    author: "נועם",
-    initials: "נו",
-    time: "09:45",
-    text: "מעולה. אני הופך את זה ל-cheat sheet לפני שזה שוב בורח לנו ביום חמישי בערב.",
-  },
-];
+type ScanState = { id: string; status: string; files_read: number; error?: string };
 
 export default function TeamWorkspace() {
-  const [messages, setMessages] = useState<TeamMessage[]>(initialMessages);
+  const router = useRouter();
+  const [messages, setMessages] = useState<TeamMessage[]>([]);
   const [message, setMessage] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisDone, setAnalysisDone] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [scan, setScan] = useState<ScanState | null>(null);
+  const [repository, setRepository] = useState("group/atlas-platform");
+  const [reference, setReference] = useState("main");
+  const [root, setRoot] = useState("services/api");
+  const [teamError, setTeamError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [profile, setProfile] = useState({ display_name: "צוות Spear", role: "fde" });
 
-  function analyzeRepository() {
+  useEffect(() => {
+    let active = true;
+    Promise.all([fetch("/api/auth/me"), fetch("/api/team/messages/Atlas")])
+      .then(async ([authResponse, messagesResponse]) => {
+        if (authResponse.status === 401 || messagesResponse.status === 401) {
+          router.replace("/");
+          return null;
+        }
+        if (!authResponse.ok || !messagesResponse.ok) throw new Error("סביבת הצוות לא זמינה כרגע");
+        return {
+          profile: (await authResponse.json()) as { display_name: string; role: string },
+          messages: (await messagesResponse.json()) as TeamMessage[],
+        };
+      })
+      .then((data) => {
+        if (!active || !data) return;
+        setProfile(data.profile);
+        setMessages(data.messages);
+      })
+      .catch((requestError: Error) => active && setTeamError(requestError.message))
+      .finally(() => active && setLoadingMessages(false));
+    return () => { active = false; };
+  }, [router]);
+
+  async function analyzeRepository() {
     if (analyzing) return;
     setAnalyzing(true);
-    setAnalysisDone(false);
-    window.setTimeout(() => {
+    setTeamError("");
+    setScan(null);
+    try {
+      const response = await fetch("/api/repositories/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project: "Atlas", repository, reference, roots: [root || "/"] }),
+      });
+      if (response.status === 401) return router.replace("/");
+      if (!response.ok) throw new Error("לא הצלחנו להתחיל סריקה");
+      let current = (await response.json()) as ScanState;
+      setScan(current);
+      for (let attempt = 0; attempt < 60 && ["queued", "running"].includes(current.status); attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        const statusResponse = await fetch(`/api/repositories/scans/${current.id}`);
+        if (!statusResponse.ok) throw new Error("איבדנו את סטטוס הסריקה");
+        current = (await statusResponse.json()) as ScanState;
+        setScan(current);
+      }
+    } catch (requestError) {
+      setTeamError(requestError instanceof Error ? requestError.message : "הסריקה נכשלה");
+    } finally {
       setAnalyzing(false);
-      setAnalysisDone(true);
-    }, 1400);
+    }
   }
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = message.trim();
-    if (!text) return;
-    setMessages((current) => [
-      ...current,
-      { author: "אור", initials: "או", time: "עכשיו", text },
-    ]);
+    if (!text || sending) return;
+    setSending(true);
+    setTeamError("");
     setMessage("");
-
-    if (!text.toLowerCase().includes("spearoni")) return;
-
     try {
-      const response = await fetch("/api/chat/team", {
+      const response = await fetch("/api/team/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project: "Atlas", message: text }),
+        body: JSON.stringify({ project: "Atlas", text }),
       });
-      if (!response.ok) throw new Error("backend unavailable");
-      const result = (await response.json()) as { answer: string; sources?: string[] };
-      setMessages((current) => [
-        ...current,
-        { author: "Spearoni+", initials: "+S", time: "עכשיו", text: result.answer, agent: true },
-      ]);
-    } catch {
-      setMessages((current) => [
-        ...current,
-        {
-          author: "Spearoni+",
-          initials: "+S",
-          time: "עכשיו",
-          agent: true,
-          text: "קלטתי. כרגע אני במצב הדגמה, אבל בחיבור המלא אחפש בקוד, בתיעוד הפנימי, ב-cheat sheets ובבאגים של Atlas — ואחזיר גם מקורות.",
-        },
-      ]);
+      if (response.status === 401) return router.replace("/");
+      if (!response.ok) throw new Error("ההודעה לא נשמרה. נסו שוב.");
+      const result = (await response.json()) as { messages: TeamMessage[] };
+      setMessages((current) => [...current, ...result.messages]);
+    } catch (requestError) {
+      setTeamError(requestError instanceof Error ? requestError.message : "שליחת ההודעה נכשלה");
+      setMessage(text);
+    } finally {
+      setSending(false);
     }
+  }
+
+  async function saveAgentResult(item: TeamMessage, kind: "cheat-sheet" | "guide" | "bug") {
+    setNotice("");
+    setTeamError("");
+    const isBug = kind === "bug";
+    const response = await fetch(isBug ? "/api/submissions" : "/api/team/knowledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(isBug
+        ? { project: "Atlas", type: "bug", title: item.text, author: profile.display_name }
+        : { project: "Atlas", title: item.text.slice(0, 90), content: item.text, kind, visibility: kind === "guide" ? "public" : "internal" }),
+    });
+    if (!response.ok) {
+      setTeamError("לא הצלחנו לשמור את הידע. נסו שוב.");
+      return;
+    }
+    setNotice(kind === "bug" ? "הבאג נפתח ונכנס לתור הציבורי." : kind === "guide" ? "התיעוד פורסם ללקוחות." : "נשמר כ-cheat sheet פנימי.");
   }
 
   return (
@@ -155,8 +194,8 @@ export default function TeamWorkspace() {
         </div>
 
         <div className="team-profile">
-          <span className="avatar">או</span>
-          <span><strong>אור דגן</strong><small>FDE · עובד קשה מדי</small></span>
+          <span className="avatar">{profile.display_name.slice(0, 1)}</span>
+          <span><strong>{profile.display_name}</strong><small>{profile.role.toUpperCase()} · עובד קשה מדי</small></span>
           <Settings size={17} />
         </div>
       </aside>
@@ -174,12 +213,15 @@ export default function TeamWorkspace() {
               <input placeholder="חיפוש בפרויקט..." />
               <kbd>⌘ K</kbd>
             </label>
+            <ThemeToggle />
             <span className="team-online"><i /> 6 מחוברים</span>
           </div>
         </header>
 
         <div className="team-content">
           <section className="room-panel" id="room">
+            {teamError && <div className="system-banner error" role="alert">{teamError}</div>}
+            {notice && <div className="system-banner success" role="status"><Check size={17} /> {notice}</div>}
             <div className="room-banner">
               <div><span className="eyebrow"><Sparkles size={15} /> Spearoni+ מאזין רק כשקוראים לו</span><h2>החדר של Atlas API</h2><p>השיחה נשמרת כידע פרויקטלי. בלי DM, בלי ״מי זוכר איפה כתבנו את זה״.</p></div>
               <button className="secondary-button" type="button"><Users size={17} /> פרטי החדר</button>
@@ -187,6 +229,7 @@ export default function TeamWorkspace() {
 
             <div className="team-chat" aria-live="polite">
               <div className="day-divider"><span>היום</span></div>
+              {loadingMessages && <div className="list-loading"><span className="spin-ring" /> טוענים את שיחת הפרויקט...</div>}
               {messages.map((item, index) => (
                 <article className={`team-message ${item.agent ? "agent" : ""}`} key={`${item.author}-${index}`}>
                   <span className="message-avatar">{item.initials}</span>
@@ -196,9 +239,9 @@ export default function TeamWorkspace() {
                     {item.code && <pre dir="ltr"><code>{item.code}</code></pre>}
                     {item.agent && (
                       <div className="agent-actions">
-                        <button type="button"><Archive size={14} /> שמירה כ-cheat sheet</button>
-                        <button type="button"><BookOpenText size={14} /> טיוטת תיעוד</button>
-                        <button type="button"><Bug size={14} /> פתיחת באג</button>
+                        <button type="button" onClick={() => saveAgentResult(item, "cheat-sheet")}><Archive size={14} /> שמירה כ-cheat sheet</button>
+                        <button type="button" onClick={() => saveAgentResult(item, "guide")}><BookOpenText size={14} /> פרסום כתיעוד</button>
+                        <button type="button" onClick={() => saveAgentResult(item, "bug")}><Bug size={14} /> פתיחת באג</button>
                       </div>
                     )}
                   </div>
@@ -209,18 +252,20 @@ export default function TeamWorkspace() {
             <form className="team-composer" onSubmit={sendMessage}>
               <div className="composer-tools"><button type="button" aria-label="הוספת קוד"><Code2 size={17} /></button><button type="button" aria-label="צירוף קובץ"><Plus size={17} /></button><span>כתבו <b dir="ltr">@Spearoni+</b> כדי לשאול את כל הידע של הפרויקט</span></div>
               <label><span className="sr-only">הודעה לחדר Atlas API</span><textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={2} placeholder="משתפים ידע, שאלה או בדיחה בינונית על YAML..." /></label>
-              <button className="send-button" type="submit" disabled={!message.trim()} aria-label="שליחת הודעה"><Send size={19} /></button>
+              <button className="send-button" type="submit" disabled={!message.trim() || sending} aria-label="שליחת הודעה">{sending ? <LoaderCircle className="spin" size={19} /> : <Send size={19} />}</button>
             </form>
           </section>
 
           <aside className="team-rail">
             <section className="rail-card repo-scan">
-              <header><span className="rail-icon"><GitPullRequestArrow size={18} /></span><div><h2>מיפוי המאגר</h2><p>atlas-platform</p></div></header>
-              <label>Branch / tag<select defaultValue="main"><option>main</option><option>release/4.8</option><option>v4.8.2</option></select></label>
-              <label>שורש לניתוח<select defaultValue="/services/api"><option>/services/api</option><option>/services/notifications</option><option>/deploy</option></select></label>
-              <button className={`scan-button ${analysisDone ? "done" : ""}`} type="button" onClick={analyzeRepository} disabled={analyzing}>
-                {analyzing ? <><LoaderCircle className="spin" size={17} /> קורא כל קובץ שפוי...</> : analysisDone ? <><Check size={17} /> המיפוי הושלם</> : <><TerminalSquare size={17} /> ניתוח ידני עכשיו</>}
+              <header><span className="rail-icon"><GitPullRequestArrow size={18} /></span><div><h2>מיפוי GitLab</h2><p>{scan ? `job ${scan.id}` : "סריקה ידנית ומבוקרת"}</p></div></header>
+              <label>GitLab project<input dir="ltr" value={repository} onChange={(event) => setRepository(event.target.value)} placeholder="group/project" /></label>
+              <label>Branch / tag<input dir="ltr" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="main" /></label>
+              <label>שורש לניתוח<input dir="ltr" value={root} onChange={(event) => setRoot(event.target.value)} placeholder="services/api" /></label>
+              <button className={`scan-button ${scan?.status === "completed" ? "done" : ""}`} type="button" onClick={analyzeRepository} disabled={analyzing || !repository.trim()}>
+                {analyzing ? <><LoaderCircle className="spin" size={17} /> קורא כל קובץ שפוי...</> : scan?.status === "completed" ? <><Check size={17} /> נקראו {scan.files_read} קבצים</> : <><TerminalSquare size={17} /> ניתוח ידני עכשיו</>}
               </button>
+              {scan?.error && <p className="inline-error">{scan.error}</p>}
               <small><ShieldCheck size={14} /> סודות, binaries ותיקיות vendor נשארים בחוץ.</small>
             </section>
 
