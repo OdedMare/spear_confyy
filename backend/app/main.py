@@ -128,8 +128,8 @@ def health() -> Dict[str, str]:
 
 @app.post("/api/auth/login")
 def login(request: LoginRequest, response: Response) -> Dict[str, str]:
-    valid_user = hmac.compare_digest(request.username, settings.team_username)
-    valid_password = hmac.compare_digest(request.password, settings.team_password)
+    valid_user = hmac.compare_digest(request.username.encode("utf-8"), settings.team_username.encode("utf-8"))
+    valid_password = hmac.compare_digest(request.password.encode("utf-8"), settings.team_password.encode("utf-8"))
     if not valid_user or not valid_password:
         raise HTTPException(status_code=401, detail="שם המשתמש או הסיסמה אינם נכונים")
     token = create_session(request.username, settings.team_role)
