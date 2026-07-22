@@ -332,10 +332,6 @@ html[data-theme="light"] .hero-art img { filter: none; }
   .portal-main { padding: 18px 13px 40px; }.portal-topbar, .team-topbar { align-items: flex-start; flex-direction: column; }.topbar-actions { width: 100%; }.global-search { min-width: 0; flex: 1; }.doc-grid { grid-template-columns: 1fr; }.project-pulse { display: block; }.section-heading { align-items: flex-start; flex-direction: column; }.spearoni-heading .soft-badge { display: none; }.chat-message { max-width: 94%; }.community-row { grid-template-columns: 37px minmax(0,1fr) auto; }.comment-count { display: none; }.status-pill { padding-inline: 6px; }
   .team-content { padding: 10px; }.team-topbar { padding: 12px 14px; }.team-rail { grid-template-columns: 1fr; }.room-banner { align-items: flex-start; flex-direction: column; }.room-banner .secondary-button { display: none; }.team-chat { padding-inline: 12px; }.composer-tools span { display: none; }.agent-actions button { flex: 1; justify-content: center; }.compact-search { min-width: 0; }.team-online { display: none; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-}
-
 /* Knowledge pages */
 .docs-workspace, .reader-page { min-height: 100dvh; background: var(--paper); }
 .docs-topbar, .reader-topbar {
@@ -537,4 +533,8 @@ html[data-theme="light"] .hero-art img { filter: none; }
   .docs-list { grid-template-columns: 1fr; }
   .unsaved-label { display: none; }
   .reader-topbar .brand-copy { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
