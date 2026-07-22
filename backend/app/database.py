@@ -4,12 +4,12 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence
 import psycopg
 from psycopg.rows import dict_row
 
-from .config import get_settings
+from .runtime_settings import get_runtime_settings
 
 
 @contextmanager
 def connection() -> Iterator[psycopg.Connection[Any]]:
-    conn = psycopg.connect(get_settings().database_url, row_factory=dict_row)
+    conn = psycopg.connect(get_runtime_settings().database_url, row_factory=dict_row)
     try:
         yield conn
         conn.commit()
@@ -133,4 +133,3 @@ def init_database() -> None:
                     ("Atlas", "נועם", "נו", "מעולה. אני הופך את זה ל-cheat sheet לפני שזה שוב בורח ביום חמישי בערב.", False, None),
                 ],
             )
-

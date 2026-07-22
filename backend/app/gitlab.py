@@ -6,6 +6,7 @@ import httpx
 
 from .config import get_settings
 from .database import execute
+from .runtime_settings import get_runtime_settings
 
 
 EXCLUDED_PARTS = {".git", "node_modules", "vendor", "dist", "build", ".next", "coverage", "__pycache__"}
@@ -51,8 +52,9 @@ def _tree(client: httpx.Client, project: str, reference: str) -> List[Dict[str, 
 
 
 def scan_repository(job_id: str, project: str, repository: str, reference: str, roots: List[str]) -> None:
-    config = get_settings()
-    if not config.gitlab_url or not config.gitlab_token:
+    runtime = get_runtime_settings()
+    limits = get_settings()
+    if not runtime.gitlab_url or not runtime.gitlab_token:
         execute(
             "UPDATE repository_scans SET status = %s, error = %s, updated_at = NOW() WHERE id = %s",
             ("configuration_required", "יש להגדיר SPEAR_GITLAB_URL ו-SPEAR_GITLAB_TOKEN", job_id),
@@ -63,15 +65,16 @@ def scan_repository(job_id: str, project: str, repository: str, reference: str, 
     files_read = 0
     try:
         with httpx.Client(
-            base_url=config.gitlab_url.rstrip("/"),
-            headers={"PRIVATE-TOKEN": config.gitlab_token},
+            base_url=runtime.gitlab_url.rstrip("/"),
+            headers={"PRIVATE-TOKEN": runtime.gitlab_token},
             timeout=30.0,
             follow_redirects=True,
+            verify=runtime.gitlab_verify_tls,
         ) as client:
             candidates = [item for item in _tree(client, repository, reference) if item.get("type") == "blob"]
             eligible = [item for item in candidates if _eligible(item["path"], roots)]
             # ponytail: synchronous bounded scan; move to a dedicated worker only when scan volume blocks API throughput.
-            for item in eligible[: config.gitlab_max_files]:
+            for item in eligible[: limits.gitlab_max_files]:
                 file_path = item["path"]
                 response = client.get(
                     "/api/v4/projects/%s/repository/files/%s/raw"
@@ -79,7 +82,7 @@ def scan_repository(job_id: str, project: str, repository: str, reference: str, 
                     params={"ref": reference},
                 )
                 response.raise_for_status()
-                if len(response.content) > config.gitlab_max_file_bytes:
+                if len(response.content) > limits.gitlab_max_file_bytes:
                     continue
                 try:
                     content = response.content.decode("utf-8")
