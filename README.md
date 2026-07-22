@@ -25,7 +25,7 @@ docker compose up --build
 - API docs: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/health`
 
-משתמש הפיתוח הראשוני הוא `team` עם הסיסמה `spear-local`. החליפו אותו לפני שימוש אמיתי באמצעות משתני הסביבה המתוארים למטה.
+משתמש ה־admin הראשוני הוא `spear1` עם הסיסמה `spear1`. החליפו אותו לפני שימוש אמיתי באמצעות משתני הסביבה המתוארים למטה.
 
 ## הגדרות
 
@@ -37,8 +37,9 @@ OPENAI_API_KEY=
 SPEAR_LLM_MODEL=gemma4:31b-cloud
 SPEAR_GITLAB_URL=https://gitlab.internal.example
 SPEAR_GITLAB_TOKEN=glpat-...
-SPEAR_TEAM_USERNAME=team
+SPEAR_TEAM_USERNAME=spear1
 SPEAR_TEAM_PASSWORD=replace-me
+SPEAR_TEAM_ROLE=admin
 SPEAR_SESSION_SECRET=replace-with-a-long-random-value
 ```
 

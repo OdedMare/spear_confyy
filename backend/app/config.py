@@ -29,10 +29,10 @@ class Settings(BaseSettings):
     gitlab_max_file_bytes: int = 524288
     runtime_settings_file: str = "runtime-settings.json"
 
-    team_username: str = "team"
-    team_password: str = "spear-local"
-    team_display_name: str = "צוות Spear"
-    team_role: str = "fde"
+    team_username: str = "spear1"
+    team_password: str = "spear1"
+    team_display_name: str = "Spear Admin"
+    team_role: str = "admin"
     session_secret: str = "change-this-in-production"
     session_seconds: int = 43200
 
