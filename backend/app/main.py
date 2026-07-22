@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, 
 from pydantic import BaseModel, Field
 
 from .auth import create_session, read_session, require_team
-from .config import get_settings
+from .config import get_settings, validate_production_settings
 from .database import execute, fetch_all, fetch_one, init_database
 from .gitlab import scan_repository
 from .llm_client import chat_completion, list_models
@@ -21,6 +21,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    validate_production_settings(settings)
     init_database()
     yield
 
@@ -154,14 +155,14 @@ def login(request: LoginRequest, response: Response) -> Dict[str, str]:
         max_age=settings.session_seconds,
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=settings.production,
     )
     return {"username": request.username, "display_name": settings.team_display_name, "role": settings.team_role}
 
 
 @app.post("/api/auth/logout")
 def logout(response: Response) -> Dict[str, bool]:
-    response.delete_cookie("spear_session")
+    response.delete_cookie("spear_session", httponly=True, samesite="lax", secure=settings.production)
     return {"ok": True}
 
 

@@ -16,6 +16,7 @@ services:
   backend:
     build: ./backend
     environment:
+      SPEAR_APP_ENV: ${SPEAR_APP_ENV:-development}
       SPEAR_DATABASE_URL: postgresql://spear:spear@database:5432/spear
       SPEAR_LLM_BASE_URL: ${SPEAR_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

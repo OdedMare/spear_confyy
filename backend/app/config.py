@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Spear API"
+    app_env: str = "development"
     database_url: str = "postgresql://spear:spear@127.0.0.1:5432/spear"
     local_storage_path: str = "./data"
 
@@ -35,6 +36,22 @@ class Settings(BaseSettings):
     team_role: str = "admin"
     session_secret: str = "change-this-in-production"
     session_seconds: int = 43200
+
+    @property
+    def production(self) -> bool:
+        return self.app_env.strip().lower() == "production"
+
+
+def validate_production_settings(settings: Settings) -> None:
+    if not settings.production:
+        return
+    unsafe = []
+    if settings.team_password == "spear1" or len(settings.team_password) < 12:
+        unsafe.append("SPEAR_TEAM_PASSWORD must be changed and contain at least 12 characters")
+    if settings.session_secret in {"change-this-in-production", "local-development-secret-change-me"} or len(settings.session_secret) < 32:
+        unsafe.append("SPEAR_SESSION_SECRET must be a unique value of at least 32 characters")
+    if unsafe:
+        raise RuntimeError("Unsafe production configuration: %s" % "; ".join(unsafe))
 
 
 @lru_cache(maxsize=1)

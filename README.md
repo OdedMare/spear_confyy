@@ -32,6 +32,7 @@ docker compose up --build
 אפשר להגדיר ב־shell או בקובץ `.env` של Docker Compose:
 
 ```dotenv
+SPEAR_APP_ENV=development
 SPEAR_LLM_BASE_URL=http://llm.internal/v1
 OPENAI_API_KEY=
 SPEAR_LLM_MODEL=gemma4:31b-cloud
@@ -42,6 +43,18 @@ SPEAR_TEAM_PASSWORD=replace-me
 SPEAR_TEAM_ROLE=admin
 SPEAR_SESSION_SECRET=replace-with-a-long-random-value
 ```
+
+## מעבר לייצור
+
+בהפעלה מאחורי HTTPS הגדירו `SPEAR_APP_ENV=production`, סיסמת צוות של 12 תווים לפחות ו־`SPEAR_SESSION_SECRET` אקראי של 32 תווים לפחות. במצב production השרת מסרב לעלות עם ברירות המחדל ומסמן את עוגיית ההתחברות כ־Secure:
+
+```dotenv
+SPEAR_APP_ENV=production
+SPEAR_TEAM_PASSWORD=replace-with-a-strong-password
+SPEAR_SESSION_SECRET=replace-with-at-least-32-random-characters
+```
+
+את TLS, הגבלת קצב ו־HSTS הגדירו ב־reverse proxy שבחזית השירות.
 
 אפשר להגדיר את אותם ערכים גם מתוך כפתור ההגדרות בסביבת הצוות. בדומה ל־locatoAi, ערכי environment הם ברירות המחדל וה־runtime settings נשמרים בקובץ JSON פרטי ומופעלים מיד. אסימוני LLM ו־GitLab נשארים ב־backend בלבד. שם המודל צריך להיות ה־slug המדויק שמוחזר מ־`/v1/models`.
 
