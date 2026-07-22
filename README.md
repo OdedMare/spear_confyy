@@ -8,7 +8,7 @@
 - סביבת צוות עם התחברות, חדרי פרויקט שמורים, Spearoni+, cheat sheets ופרסום תיעוד ללקוחות.
 - סריקה ידנית של repository/ref/root מתוך GitLab, כולל סינון secrets, binaries, generated ו־vendor.
 - PostgreSQL לתיעוד, submissions, הודעות וסריקות.
-- OpenAI-compatible client עבור endpoint פנימי ומודל ברירת מחדל `gemma4-31b`.
+- OpenAI-compatible client עבור endpoint פנימי ומודל ברירת מחדל `gemma4:31b-cloud`.
 - מצב כהה כברירת מחדל ומצב בהיר שנשמר בדפדפן.
 
 ## הדרך הקצרה להריץ
@@ -16,6 +16,8 @@
 ```bash
 docker compose up --build
 ```
+
+אם פורט מקומי תפוס: `SPEAR_FRONTEND_PORT=3001 SPEAR_BACKEND_PORT=8001 docker compose up --build`.
 
 לאחר שהשירותים בריאים:
 

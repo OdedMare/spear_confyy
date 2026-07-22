@@ -19,7 +19,7 @@ Spear is a Hebrew-first, RTL knowledge platform. Customers see only published do
 4. Preserve 44px touch targets, visible focus states and reduced-motion behavior.
 5. Backend code must remain valid on Python 3.8.10: use `List[str]`/`Optional[str]`, not `list[str]` or `X | None`.
 6. Do not add Redis, queues, object storage or a vector database without a measured need.
-7. Never send `SPEAR_GITLAB_TOKEN`, `SPEAR_LLM_API_KEY`, session secrets or internal document content to public endpoints.
+7. Never send `SPEAR_GITLAB_TOKEN`, `OPENAI_API_KEY`, session secrets or internal document content to public endpoints.
 8. Schema changes belong in `init_database()` until a second deployment needs formal migrations.
 
 ## Checks before handing off
@@ -29,4 +29,3 @@ cd frontend && npm run lint && npm run build
 cd backend && PYTHONPATH=. python -m pytest
 docker compose config
 ```
-

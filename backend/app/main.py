@@ -89,9 +89,13 @@ class RepositoryAnalysisRequest(BaseModel):
 
 
 def _documents(project: str, internal: bool) -> List[Dict[str, str]]:
-    visibility = "visibility IN ('public', 'internal')" if internal else "visibility = 'public'"
+    query = (
+        "SELECT title, content FROM documents WHERE project = %s ORDER BY updated_at DESC"
+        if internal
+        else "SELECT title, content FROM documents WHERE project = %s AND visibility = 'public' ORDER BY updated_at DESC"
+    )
     rows = fetch_all(
-        "SELECT title, content FROM documents WHERE project = %s AND %s ORDER BY updated_at DESC" % ("%s", visibility),
+        query,
         (project,),
     )
     return [{"title": row["title"], "content": row["content"]} for row in rows]

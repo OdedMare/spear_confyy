@@ -17,6 +17,8 @@ Open `http://localhost:3000`. `/api/*` is proxied to `BACKEND_URL`, which keeps 
 - `/customer?name=...`: public docs, Spearoni and community submissions.
 - `/team`: authenticated room, GitLab scan controls and Spearoni+ knowledge actions.
 
+The settings panel in `/team` follows the locatoAi flow: edit the LLM endpoint and key, probe the model list before saving, choose `gemma4:31b-cloud`, and configure PostgreSQL plus the GitLab URL/token. Secrets are write-only and never returned to the browser.
+
 Theme preference is stored as `spear-theme` in local storage. The inline bootstrap in `layout.tsx` applies it before paint to prevent a theme flash.
 
 ## Checks
@@ -26,4 +28,3 @@ npm run lint
 npm run build
 npm audit --omit=dev
 ```
-

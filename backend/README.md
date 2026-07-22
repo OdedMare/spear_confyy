@@ -25,6 +25,7 @@ Like locatoAi, environment values are defaults. `GET/PUT /api/settings` updates 
 ## Main endpoints
 
 - `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`
+- `GET/PUT /api/settings`, `GET/POST /api/models`
 - `GET /api/public/{project}`, `POST /api/submissions`
 - `POST /api/chat/customer`, `POST /api/chat/team`
 - `GET/POST /api/team/messages`
