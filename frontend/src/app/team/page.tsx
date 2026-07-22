@@ -2,7 +2,6 @@
 
 import {
   Archive,
-  Bot,
   BookOpenText,
   Bug,
   Check,
@@ -18,7 +17,6 @@ import {
   Hash,
   Lightbulb,
   LoaderCircle,
-  MessageSquareText,
   Network,
   Plus,
   Search,

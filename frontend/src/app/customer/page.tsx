@@ -16,7 +16,8 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 import { SpearMark } from "@/components/brand";
 
 type ChatMessage = { from: "user" | "agent"; text: string; sources?: string[] };
@@ -42,7 +43,16 @@ const typeMeta = {
 };
 
 export default function CustomerPortal() {
-  const [name, setName] = useState("אורח");
+  return (
+    <Suspense fallback={<div className="route-loading">פותחים את מרכז הלקוחות...</div>}>
+      <CustomerPortalContent />
+    </Suspense>
+  );
+}
+
+function CustomerPortalContent() {
+  const searchParams = useSearchParams();
+  const name = searchParams.get("name")?.trim() || "אורח";
   const [question, setQuestion] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -54,11 +64,6 @@ export default function CustomerPortal() {
   const [items, setItems] = useState(starterItems);
   const [itemType, setItemType] = useState<CommunityItem["type"]>("question");
   const [itemTitle, setItemTitle] = useState("");
-
-  useEffect(() => {
-    const requestedName = new URLSearchParams(window.location.search).get("name");
-    if (requestedName?.trim()) setName(requestedName.trim());
-  }, []);
 
   const greeting = useMemo(() => `שלום ${name}, מה נרצה לפתור היום?`, [name]);
 
