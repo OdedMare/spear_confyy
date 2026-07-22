@@ -174,7 +174,7 @@ export default function TeamWorkspace() {
 
         <nav className="team-nav" aria-label="ניווט סביבת הצוות">
           <a className="active" href="#room"><Hash size={18} /> חדר הפרויקט</a>
-          <a href="#knowledge"><BookOpenText size={18} /> בסיס הידע</a>
+          <a href="/team/docs"><BookOpenText size={18} /> בסיס הידע</a>
           <a href="#repos"><GitBranch size={18} /> מאגרי קוד <span className="nav-count">3</span></a>
           <a href="#issues"><Bug size={18} /> משימות פתוחות <span className="nav-count warning">8</span></a>
           <a href="#team"><Users size={18} /> חברי הצוות</a>
@@ -274,10 +274,10 @@ export default function TeamWorkspace() {
             </section>
 
             <section className="rail-card" id="knowledge">
-              <div className="rail-heading"><div><span className="section-kicker">ידע חם</span><h2>שימושי השבוע</h2></div><button className="icon-button" aria-label="הוספת פריט ידע" type="button"><Plus size={17} /></button></div>
-              <a className="knowledge-item" href="#room"><span className="type-icon code"><TerminalSquare size={16} /></span><span><strong>Deploy ל-OpenShift</strong><small>cheat sheet · עודכן היום</small></span></a>
-              <a className="knowledge-item" href="#room"><span className="type-icon question"><CircleHelp size={16} /></span><span><strong>למה ה-worker נתקע?</strong><small>שאלה · 5 תגובות</small></span></a>
-              <a className="knowledge-item" href="#room"><span className="type-icon idea"><Lightbulb size={16} /></span><span><strong>Retry policy אחידה</strong><small>רעיון · בבחינה</small></span></a>
+              <div className="rail-heading"><div><span className="section-kicker">ידע חם</span><h2>שימושי השבוע</h2></div><a className="icon-button" href="/team/docs" aria-label="הוספת עמוד ידע"><Plus size={17} /></a></div>
+              <a className="knowledge-item" href="/team/docs"><span className="type-icon code"><TerminalSquare size={16} /></span><span><strong>Deploy ל-OpenShift</strong><small>cheat sheet · עודכן היום</small></span></a>
+              <a className="knowledge-item" href="/team/docs"><span className="type-icon question"><CircleHelp size={16} /></span><span><strong>למה ה-worker נתקע?</strong><small>שאלה · 5 תגובות</small></span></a>
+              <a className="knowledge-item" href="/team/docs"><span className="type-icon idea"><Lightbulb size={16} /></span><span><strong>Retry policy אחידה</strong><small>רעיון · בבחינה</small></span></a>
             </section>
 
             <section className="rail-card pulse-card" id="issues">

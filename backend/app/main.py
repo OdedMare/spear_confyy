@@ -363,7 +363,7 @@ def save_knowledge(
         VALUES (%s, %s, %s, %s, %s, NOW())
         ON CONFLICT (project, title, visibility)
         DO UPDATE SET content = EXCLUDED.content, kind = EXCLUDED.kind, updated_at = NOW()
-        RETURNING id, project, title, visibility, kind, updated_at
+        RETURNING id, project, title, content, visibility, kind, updated_at
         """,
         (request.project, request.title, request.content, request.visibility, request.kind),
     )

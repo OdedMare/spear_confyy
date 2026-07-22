@@ -200,7 +200,7 @@ function CustomerPortalContent() {
           <div className="doc-grid">
             {loadingData && [1, 2, 3].map((item) => <span className="doc-card skeleton" key={item} />)}
             {!loadingData && documents.slice(0, 3).map((document) => (
-              <a className="doc-card" href="#spearoni" key={document.id}>
+              <a className="doc-card" href={`/customer/docs/${document.id}?name=${encodeURIComponent(name)}`} key={document.id}>
                 <span className="doc-glyph">{document.title.slice(0, 1)}</span>
                 <span><strong>{document.title}</strong><small>{document.content}</small></span>
                 <span className="read-time">תיעוד חי <ExternalLink size={14} /></span>
