@@ -4,7 +4,6 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
-import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
@@ -12,8 +11,9 @@ from .auth import create_session, read_session, require_team
 from .config import get_settings
 from .database import execute, fetch_all, fetch_one, init_database
 from .gitlab import scan_repository
-from .llm_client import chat_completion
+from .llm_client import chat_completion, list_models
 from .retrieval import retrieve_documents, sanitize_public_question
+from .runtime_settings import get_runtime_settings, get_runtime_store, mask_database_url, mask_key
 
 
 settings = get_settings()
@@ -31,6 +31,22 @@ app = FastAPI(title="Spear API", version="0.2.0", lifespan=lifespan)
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=80)
     password: str = Field(min_length=1, max_length=200)
+
+
+class SettingsUpdate(BaseModel):
+    llm_model: Optional[str] = None
+    llm_diet_mode: Optional[bool] = None
+    llm_base_url: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    database_url: Optional[str] = None
+    gitlab_url: Optional[str] = None
+    gitlab_token: Optional[str] = None
+    gitlab_verify_tls: Optional[bool] = None
+
+
+class ModelsProbeRequest(BaseModel):
+    llm_base_url: Optional[str] = None
+    openai_api_key: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -89,12 +105,7 @@ def _llm_answer(message: str, documents: List[Dict[str, str]], internal: bool) -
         "השתמש רק בהקשר המצורף, אל תמציא, וציין כאשר חסר מידע. תחום: %s.\n\n%s"
         % ("+" if internal else "", scope, context)
     )
-    return chat_completion(
-        messages=[{"role": "system", "content": prompt}, {"role": "user", "content": message}],
-        model=settings.llm_model,
-        api_key=settings.llm_api_key,
-        base_url=settings.llm_base_url,
-    )
+    return chat_completion(messages=[{"role": "system", "content": prompt}, {"role": "user", "content": message}])
 
 
 def _answer(message: str, project: str, internal: bool) -> ChatResponse:
@@ -157,21 +168,66 @@ def me(session: Dict[str, str] = Depends(require_team)) -> Dict[str, str]:
 
 @app.get("/api/settings/public")
 def public_settings() -> Dict[str, object]:
+    runtime = get_runtime_settings()
     return {
-        "model": settings.llm_model,
-        "llm_base_url": settings.llm_base_url,
-        "gitlab_configured": bool(settings.gitlab_url and settings.gitlab_token),
+        "model": runtime.llm_model,
+        "llm_configured": bool(runtime.llm_base_url or runtime.openai_api_key),
+        "gitlab_configured": bool(runtime.gitlab_url and runtime.gitlab_token),
     }
 
 
+def _settings_response() -> Dict[str, object]:
+    runtime = get_runtime_settings()
+    return {
+        "llm_model": runtime.llm_model,
+        "llm_diet_mode": runtime.llm_diet_mode,
+        "llm_base_url": runtime.llm_base_url,
+        "openai_api_key_set": bool(runtime.openai_api_key),
+        "openai_api_key_hint": mask_key(runtime.openai_api_key),
+        "database_url": mask_database_url(runtime.database_url),
+        "gitlab_url": runtime.gitlab_url,
+        "gitlab_token_set": bool(runtime.gitlab_token),
+        "gitlab_token_hint": mask_key(runtime.gitlab_token),
+        "gitlab_verify_tls": runtime.gitlab_verify_tls,
+    }
+
+
+@app.get("/api/settings")
+def runtime_settings(_: Dict[str, str] = Depends(require_team)) -> Dict[str, object]:
+    return _settings_response()
+
+
+@app.put("/api/settings")
+def update_runtime_settings(
+    request: SettingsUpdate,
+    _: Dict[str, str] = Depends(require_team),
+) -> Dict[str, object]:
+    try:
+        get_runtime_store().update(request.model_dump(exclude_unset=True))
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+    return _settings_response()
+
+
 @app.get("/api/models")
-def list_models(_: Dict[str, str] = Depends(require_team)) -> Dict[str, List[str]]:
-    url = "%s/models" % settings.llm_base_url.rstrip("/")
-    headers = {"Authorization": "Bearer %s" % (settings.llm_api_key or "null")}
-    with httpx.Client(timeout=8.0) as client:
-        response = client.get(url, headers=headers)
-        response.raise_for_status()
-    return {"models": [item["id"] for item in response.json().get("data", []) if item.get("id")]}
+def saved_models(_: Dict[str, str] = Depends(require_team)) -> Dict[str, List[str]]:
+    try:
+        return {"models": list_models()}
+    except Exception as error:
+        raise HTTPException(status_code=502, detail="Could not list LLM models: %s" % error)
+
+
+@app.post("/api/models")
+def probe_models(request: ModelsProbeRequest, _: Dict[str, str] = Depends(require_team)) -> Dict[str, List[str]]:
+    try:
+        return {
+            "models": list_models(
+                base_url_override=(request.llm_base_url or "").strip() or None,
+                api_key_override=(request.openai_api_key or "").strip() or None,
+            )
+        }
+    except Exception as error:
+        raise HTTPException(status_code=502, detail="Could not list LLM models: %s" % error)
 
 
 @app.get("/api/public/{project}")
