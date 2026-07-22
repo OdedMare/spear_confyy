@@ -7,9 +7,9 @@
 ---
 
 **Project:** Spear
-**Generated:** 2026-07-22 22:57:25
+**Generated:** 2026-07-22 23:21:06
 **Category:** Knowledge Base/Documentation
-**Design Dials:** Variance 5/10 (Balanced / Modern) | Motion 3/10 (Subtle) | Density 6/10 (Standard)
+**Design Dials:** Variance 5/10 (Balanced / Modern) | Motion 3/10 (Subtle) | Density 7/10 (Standard)
 
 ---
 
@@ -46,7 +46,7 @@
 
 ### Spacing Variables
 
-*Density: 6/10 — Standard*
+*Density: 7/10 — Standard*
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -161,13 +161,13 @@
 
 ## Style Guidelines
 
-**Style:** Swiss Modernism 2.0
+**Style:** Modern Dark (Cinema Mobile)
 
-**Keywords:** Grid system, Helvetica, modular, asymmetric, international style, rational, clean, mathematical spacing
+**Keywords:** dark mode, cinematic, ambient light, glassmorphism, deep black, indigo, glow, blur, atmospheric, reanimated, haptic, premium, layered, frosted glass, linear gradient
 
-**Best For:** Corporate sites, architecture, editorial, SaaS, museums, professional services, documentation
+**Best For:** Developer tools, pro productivity apps, fintech/trading dashboards, media/streaming platforms, AI tool interfaces, high-end gaming companion apps
 
-**Key Effects:** display: grid, grid-template-columns: repeat(12 1fr), gap: 1rem, mathematical ratios, clear hierarchy
+**Key Effects:** Expo.out Bezier(0.16,1,0.3,1) easing; spring modals (damping:20 stiffness:90); haptic-linked press (Impact Light/Medium); animated ambient light blobs (Reanimated translateX/Y slow oscillation); BlurView glassmorphism headers/nav (intensity 20); scale press 0.97 → 1.0; avoid pure #000000 (OLED smear)
 
 ### Page Pattern
 

@@ -22,9 +22,17 @@ class Settings(BaseSettings):
 
     gitlab_url: str = ""
     gitlab_token: Optional[str] = None
+    gitlab_max_files: int = 2000
+    gitlab_max_file_bytes: int = 524288
+
+    team_username: str = "team"
+    team_password: str = "spear-local"
+    team_display_name: str = "צוות Spear"
+    team_role: str = "fde"
+    session_secret: str = "change-this-in-production"
+    session_seconds: int = 43200
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
-

@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { ArrowLeft, BookOpenText, Code2, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpenText, Code2, LoaderCircle, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { SpearMark } from "@/components/brand";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Entry = "customer" | "team";
 
@@ -14,22 +15,42 @@ export default function Home() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
     if (entry === "customer") {
       const displayName = name.trim() || "אורח";
       router.push(`/customer?name=${encodeURIComponent(displayName)}`);
       return;
     }
-    if (username.trim() && password) router.push("/team");
+    if (!username.trim() || !password || submitting) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { detail?: string } | null;
+        throw new Error(body?.detail || "לא הצלחנו להתחבר. בדקו שה-backend פעיל ונסו שוב.");
+      }
+      router.push("/team");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "ההתחברות נכשלה");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <main className="entry-page">
       <header className="entry-header">
         <SpearMark />
-        <span className="quiet-badge"><span className="status-dot" /> רשת פנימית</span>
+        <div className="header-tools"><ThemeToggle /><span className="quiet-badge"><span className="status-dot" /> רשת פנימית</span></div>
       </header>
 
       <section className="entry-hero">
@@ -125,9 +146,9 @@ export default function Home() {
               </label>
             </div>
           )}
-          <button className="primary-button" type="submit">
-            {entry === "customer" ? "קדימה, לידע" : "פותחים משמרת"}
-            <ArrowLeft size={19} />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="primary-button" type="submit" disabled={submitting}>
+            {submitting ? <><LoaderCircle className="spin" size={18} /> מתחברים...</> : <>{entry === "customer" ? "קדימה, לידע" : "פותחים משמרת"}<ArrowLeft size={19} /></>}
           </button>
         </form>
       </section>
