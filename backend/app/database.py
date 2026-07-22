@@ -94,7 +94,7 @@ def init_database() -> None:
     """
     with connection() as conn:
         conn.execute(schema)
-        conn.executemany(
+        conn.cursor().executemany(
             """
             INSERT INTO documents (project, title, content, visibility, kind)
             VALUES (%s, %s, %s, %s, %s)
@@ -108,7 +108,7 @@ def init_database() -> None:
                 ("Atlas", "Worker retry policy", "ה-worker משתמש בשלושה ניסיונות עם backoff. אין לבצע retry לשגיאות validation.", "internal", "code"),
             ],
         )
-        conn.executemany(
+        conn.cursor().executemany(
             """
             INSERT INTO submissions (id, project, type, title, author, status, comments)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -122,7 +122,7 @@ def init_database() -> None:
         )
         count = conn.execute("SELECT COUNT(*) AS count FROM team_messages").fetchone()["count"]
         if count == 0:
-            conn.executemany(
+            conn.cursor().executemany(
                 """
                 INSERT INTO team_messages (project, author, initials, text, agent, code)
                 VALUES (%s, %s, %s, %s, %s, %s)
