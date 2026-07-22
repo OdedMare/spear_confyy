@@ -241,6 +241,25 @@ kbd { padding: 2px 6px; border: 1px solid #ddd8cf; border-bottom-width: 2px; bor
 .theme-icon-light { display: none; }
 html[data-theme="light"] .theme-icon-light { display: block; }
 html[data-theme="light"] .theme-icon-dark { display: none; }
+.profile-settings { display: grid; width: 36px; height: 36px; padding: 0; place-items: center; border: 0; border-radius: 8px; background: transparent; color: #9da9bf; }
+.profile-settings:hover { background: #202d46; color: white; }
+
+.modal-scrim { position: fixed; inset: 0; z-index: 50; display: grid; padding: 24px; place-items: center; background: rgba(2,6,14,.68); backdrop-filter: blur(8px); }
+.settings-modal { width: min(760px, 100%); max-height: calc(100dvh - 48px); overflow-y: auto; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); box-shadow: 0 30px 100px rgba(0,0,0,.55); }
+.settings-modal > header { position: sticky; top: 0; z-index: 2; display: flex; padding: 20px 22px; align-items: flex-start; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--paper-2) 92%, transparent); backdrop-filter: blur(12px); }
+.settings-modal h2 { margin: 3px 0; font-size: 24px; }.settings-modal header p { margin: 0; color: var(--ink-soft); font-size: 11px; }
+.settings-modal form { display: grid; padding: 18px 22px 22px; gap: 14px; }
+.settings-modal fieldset { display: grid; margin: 0; padding: 15px; gap: 11px; border: 1px solid var(--line); border-radius: 13px; background: var(--card); }
+.settings-modal legend { display: inline-flex; padding: 0 7px; align-items: center; gap: 7px; color: var(--ink); font-size: 12px; font-weight: 850; }
+.settings-modal label { display: grid; gap: 5px; color: var(--ink-soft); font-size: 11px; font-weight: 750; }
+.settings-modal label small { color: var(--green); font-size: 9px; }
+.settings-modal input { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--card-2); color: var(--ink); }
+.settings-modal input:focus { border-color: var(--blue); outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 20%, transparent); }
+.settings-modal .check-row { display: flex; min-height: 38px; align-items: center; gap: 8px; color: var(--ink); }.settings-modal .check-row input { width: 17px; min-height: 17px; accent-color: var(--action); }
+.model-field { display: grid; align-items: end; grid-template-columns: minmax(0,1fr) auto; gap: 9px; }.model-field .secondary-button { white-space: nowrap; }
+.field-help { margin: -3px 0 0; color: var(--ink-soft); font-size: 10px; }
+.settings-modal footer { display: flex; padding-top: 3px; justify-content: flex-end; gap: 9px; }
+.settings-loading { display: flex; min-height: 280px; align-items: center; justify-content: center; gap: 9px; color: var(--ink-soft); }
 
 .secondary-button, .icon-button, .entry-tabs button.active, .global-search, .spearoni-card, .doc-card, .content-section, .rail-card, .chat-message, .suggestion-row button, .quick-submit form, .room-panel, .team-composer, .agent-actions button, .pulse-row strong { background: var(--card); color: var(--ink); }
 .portal, .team-shell { background: var(--paper); }
@@ -294,6 +313,7 @@ html[data-theme="light"] .hero-art img { filter: none; }
   .theme-toggle span { display: none; }
   .theme-toggle { width: 42px; padding: 0; }
   .header-tools { gap: 7px; }
+  .modal-scrim { padding: 0; align-items: end; }.settings-modal { max-height: 92dvh; border-radius: 18px 18px 0 0; }.settings-modal > header, .settings-modal form { padding-inline: 15px; }.model-field { grid-template-columns: 1fr; }.settings-modal footer > button { flex: 1; }
 }
 
 @media (max-width: 1120px) {

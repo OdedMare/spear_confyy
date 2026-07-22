@@ -30,6 +30,7 @@ import {
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { SpearMark } from "@/components/brand";
+import { SettingsPanel } from "@/components/settings-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 type TeamMessage = {
@@ -57,6 +58,7 @@ export default function TeamWorkspace() {
   const [root, setRoot] = useState("services/api");
   const [teamError, setTeamError] = useState("");
   const [notice, setNotice] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [profile, setProfile] = useState({ display_name: "צוות Spear", role: "fde" });
 
   useEffect(() => {
@@ -197,7 +199,7 @@ export default function TeamWorkspace() {
         <div className="team-profile">
           <span className="avatar">{profile.display_name.slice(0, 1)}</span>
           <span><strong>{profile.display_name}</strong><small>{profile.role.toUpperCase()} · עובד קשה מדי</small></span>
-          <Settings size={17} />
+          <button className="profile-settings" type="button" onClick={() => setSettingsOpen(true)} aria-label="פתיחת הגדרות"><Settings size={17} /></button>
         </div>
       </aside>
 
@@ -215,6 +217,7 @@ export default function TeamWorkspace() {
               <kbd>⌘ K</kbd>
             </label>
             <ThemeToggle />
+            <button className="icon-button settings-trigger" type="button" onClick={() => setSettingsOpen(true)} aria-label="פתיחת הגדרות מערכת"><Settings size={17} /></button>
             <span className="team-online"><i /> 6 מחוברים</span>
           </div>
         </header>
@@ -286,6 +289,7 @@ export default function TeamWorkspace() {
           </aside>
         </div>
       </main>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
