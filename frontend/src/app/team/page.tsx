@@ -140,19 +140,20 @@ export default function TeamWorkspace() {
   async function saveAgentResult(item: TeamMessage, kind: "cheat-sheet" | "guide" | "bug") {
     setNotice("");
     setTeamError("");
-    const isBug = kind === "bug";
-    const response = await fetch(isBug ? "/api/submissions" : "/api/team/knowledge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(isBug
-        ? { project: "Atlas", type: "bug", title: item.text, author: profile.display_name }
-        : { project: "Atlas", title: item.text.slice(0, 90), content: item.text, kind, visibility: kind === "guide" ? "public" : "internal" }),
-    });
-    if (!response.ok) {
+    try {
+      const isBug = kind === "bug";
+      const response = await fetch(isBug ? "/api/submissions" : "/api/team/knowledge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isBug
+          ? { project: "Atlas", type: "bug", title: item.text, author: profile.display_name }
+          : { project: "Atlas", title: item.text.slice(0, 90), content: item.text, kind, visibility: kind === "guide" ? "public" : "internal" }),
+      });
+      if (!response.ok) throw new Error("save failed");
+      setNotice(kind === "bug" ? "הבאג נפתח ונכנס לתור הציבורי." : kind === "guide" ? "התיעוד פורסם ללקוחות." : "נשמר כ-cheat sheet פנימי.");
+    } catch {
       setTeamError("לא הצלחנו לשמור את הידע. נסו שוב.");
-      return;
     }
-    setNotice(kind === "bug" ? "הבאג נפתח ונכנס לתור הציבורי." : kind === "guide" ? "התיעוד פורסם ללקוחות." : "נשמר כ-cheat sheet פנימי.");
   }
 
   return (
