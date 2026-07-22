@@ -2,7 +2,6 @@
 
 import {
   ArrowRight,
-  BookOpenText,
   Check,
   Code2,
   Eye,
