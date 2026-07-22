@@ -75,4 +75,3 @@ cd backend && PYTHONPATH=. python -m pytest
 ## רשת מבודדת
 
 כל התלויות הן רגילות וניתנות למראה פנימית. אין תלות בשירותי CDN, fonts חיצוניים, S3, Redis, Kafka, Celery או vector DB. ברירת המחדל היא FastAPI יחיד, PostgreSQL ודיסק מקומי.
-
